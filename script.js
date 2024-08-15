@@ -5,8 +5,8 @@ document.getElementById('start-game').addEventListener('click', function() {
     const ctx = canvas.getContext('2d');
 
     // Set the field dimensions
-    const fieldWidth = 4000;
-    const fieldHeight = 2500;
+    const fieldWidth = 5000;
+    const fieldHeight = 3000;
 
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
@@ -54,6 +54,31 @@ document.getElementById('start-game').addEventListener('click', function() {
     let playerScore = 0;
     let opponentScore = 0;
 
+    // Countdown before game starts
+    function startCountdown(callback) {
+        let countdown = 3;
+        const interval = setInterval(() => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawField();
+            drawPlayer(player);
+            drawPlayer(opponent);
+            drawBall();
+            drawScore();
+
+            ctx.fillStyle = 'white';
+            ctx.font = '100px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText(countdown > 0 ? countdown : 'Go!', canvas.width / 2, canvas.height / 2);
+
+            countdown--;
+
+            if (countdown < -1) {
+                clearInterval(interval);
+                callback();
+            }
+        }, 1000);
+    }
+
     function drawField() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         ctx.fillStyle = field.color;
@@ -73,13 +98,21 @@ document.getElementById('start-game').addEventListener('click', function() {
         ctx.lineTo(field.width / 2 - camera.x, field.height - camera.y);
         ctx.stroke();
 
-        // Draw goals
-        ctx.strokeRect(0 - camera.x, (field.height / 2) - 200 - camera.y, 100, 400);
-        ctx.strokeRect(field.width - 100 - camera.x, (field.height / 2) - 200 - camera.y, 100, 400);
+        // Draw goals with shadows
+        drawGoalWithShadow(0 - camera.x, (field.height / 2) - 200 - camera.y);
+        drawGoalWithShadow(field.width - 100 - camera.x, (field.height / 2) - 200 - camera.y);
 
         // Draw penalty boxes
         ctx.strokeRect(0 - camera.x, (field.height / 2) - 600 - camera.y, 800, 1200);
         ctx.strokeRect(field.width - 800 - camera.x, (field.height / 2) - 600 - camera.y, 800, 1200);
+    }
+
+    function drawGoalWithShadow(x, y) {
+        ctx.strokeStyle = 'black';
+        ctx.lineWidth = 5;
+        ctx.strokeRect(x, y, 100, 400);
+        ctx.fillStyle = 'gray';
+        ctx.fillRect(x + 100, y + 20, 20, 400); // Shadow effect
     }
 
     function drawPlayer(character) {
@@ -133,6 +166,8 @@ document.getElementById('start-game').addEventListener('click', function() {
             }
             ball.x = character.x;
             ball.y = character.y;
+        } else {
+            character.hasBall = false;
         }
     }
 
@@ -157,11 +192,13 @@ document.getElementById('start-game').addEventListener('click', function() {
     function moveOpponent() {
         let dx = 0, dy = 0;
 
-        if (ball.x > opponent.x) dx = opponent.speed;
-        else if (ball.x < opponent.x) dx = -opponent.speed;
+        if (!opponent.hasBall) {
+            if (ball.x > opponent.x) dx = opponent.speed;
+            else if (ball.x < opponent.x) dx = -opponent.speed;
 
-        if (ball.y > opponent.y) dy = opponent.speed;
-        else if (ball.y < opponent.y) dy = -opponent.speed;
+            if (ball.y > opponent.y) dy = opponent.speed;
+            else if (ball.y < opponent.y) dy = -opponent.speed;
+        }
 
         moveCharacter(opponent, dx, dy);
         handleBallCollision(opponent);
@@ -181,8 +218,8 @@ document.getElementById('start-game').addEventListener('click', function() {
     function drawScore() {
         ctx.fillStyle = 'white';
         ctx.font = '30px Arial';
-        ctx.fillText(`Player: ${playerScore}`, 50, 50);
-        ctx.fillText(`Opponent: ${opponentScore}`, canvas.width - 200, 50);
+        ctx.textAlign = 'center';
+        ctx.fillText(`Player: ${playerScore} | Opponent: ${opponentScore}`, canvas.width / 2, 50);
     }
 
     function checkGoal() {
@@ -209,21 +246,25 @@ document.getElementById('start-game').addEventListener('click', function() {
 
         // Handle special controls
         if (keysPressed[' ']) {
-            console.log("Shoot!");
             if (player.hasBall) {
-                ball.x += Math.cos(Math.atan2(ball.y - opponent.y, ball.x - opponent.x)) * ball.speed;
-                ball.y += Math.sin(Math.atan2(ball.y - opponent.y, ball.x - opponent.x)) * ball.speed;
+                // Implement shooting logic
                 player.hasBall = false;
+                const angle = Math.atan2(ball.y - opponent.y, ball.x - opponent.x);
+                ball.x += Math.cos(angle) * ball.speed;
+                ball.y += Math.sin(angle) * ball.speed;
             }
-        } else if (event.key === 'p') {
-            console.log("Pass!");
-            // Implement passing logic here
-        } else if (event.key === 'o') {
-            console.log("Juke!");
-            // Implement juking logic here
+        } else if (keysPressed['p']) {
+            if (player.hasBall) {
+                // Implement passing logic
+                player.hasBall = false;
+                ball.x += player.speed * 3;
+            }
+        } else if (keysPressed['o']) {
+            if (player.hasBall) {
+                // Implement juking logic
+                player.x += player.speed * 2;
+            }
         }
-
-        movePlayer();
     });
 
     document.addEventListener('keyup', function(event) {
@@ -237,9 +278,5 @@ document.getElementById('start-game').addEventListener('click', function() {
         requestAnimationFrame(gameLoop);
     }
 
-    drawField();
-    drawPlayer(player);
-    drawPlayer(opponent);
-    drawBall();
-    gameLoop();
+    startCountdown(gameLoop);
 });
