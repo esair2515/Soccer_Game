@@ -5,8 +5,8 @@ document.getElementById('start-game').addEventListener('click', function() {
     const ctx = canvas.getContext('2d');
 
     // Set the field dimensions
-    const fieldWidth = 2500;
-    const fieldHeight = 1600;
+    const fieldWidth = 4000; // Increased field size
+    const fieldHeight = 2500;
 
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
@@ -25,15 +25,15 @@ document.getElementById('start-game').addEventListener('click', function() {
         y: canvas.height / 2,
         size: 30,
         color: 'blue',
-        speed: 5,
+        speed: 8, // Increased speed
     };
 
     const ball = {
         x: fieldWidth / 2,
         y: fieldHeight / 2,
-        size: 20,
+        size: 15, // Smaller ball
         color: 'white',
-        speed: 8,
+        speed: 10,
     };
 
     const camera = {
@@ -98,8 +98,9 @@ document.getElementById('start-game').addEventListener('click', function() {
         if (keysPressed['s']) dy += player.speed;
         if (keysPressed['d']) dx += player.speed;
 
-        player.x += dx;
-        player.y += dy;
+        // Smooth movement
+        player.x += dx * 0.8; 
+        player.y += dy * 0.8;
         updateCamera();
         handleBallCollision();
         drawField();
@@ -123,6 +124,19 @@ document.getElementById('start-game').addEventListener('click', function() {
 
     document.addEventListener('keydown', function(event) {
         keysPressed[event.key] = true;
+
+        // Handle special controls
+        if (keysPressed['p'] && keysPressed['o']) {
+            console.log("Shoot!");
+            // Implement shooting logic here
+        } else if (event.key === 'p') {
+            console.log("Pass!");
+            // Implement passing logic here
+        } else if (event.key === 'o') {
+            console.log("Juke!");
+            // Implement juking logic here
+        }
+
         movePlayer();
     });
 
