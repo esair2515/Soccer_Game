@@ -26,6 +26,7 @@ document.getElementById('start-game').addEventListener('click', function() {
         size: 30,
         color: 'blue',
         speed: 8,
+        hasBall: false,
     };
 
     const opponent = {
@@ -33,7 +34,8 @@ document.getElementById('start-game').addEventListener('click', function() {
         y: fieldHeight / 2,
         size: 30,
         color: 'red',
-        speed: 5, // Slower than player
+        speed: 5,
+        hasBall: false,
     };
 
     const ball = {
@@ -72,8 +74,8 @@ document.getElementById('start-game').addEventListener('click', function() {
         ctx.stroke();
 
         // Draw goals
-        ctx.strokeRect(0 - camera.x, (field.height / 2) - 200 - camera.y, 400, 400);
-        ctx.strokeRect(field.width - 400 - camera.x, (field.height / 2) - 200 - camera.y, 400, 400);
+        ctx.strokeRect(0 - camera.x, (field.height / 2) - 200 - camera.y, 100, 400);
+        ctx.strokeRect(field.width - 100 - camera.x, (field.height / 2) - 200 - camera.y, 100, 400);
 
         // Draw penalty boxes
         ctx.strokeRect(0 - camera.x, (field.height / 2) - 600 - camera.y, 800, 1200);
@@ -117,15 +119,20 @@ document.getElementById('start-game').addEventListener('click', function() {
         character.y = Math.max(character.size / 2, Math.min(character.y, field.height - character.size / 2));
     }
 
-    function handleBallCollision() {
-        const distX = player.x - ball.x;
-        const distY = player.y - ball.y;
+    function handleBallCollision(character) {
+        const distX = character.x - ball.x;
+        const distY = character.y - ball.y;
         const distance = Math.sqrt(distX * distX + distY * distY);
 
-        if (distance < player.size / 2 + ball.size) {
-            const angle = Math.atan2(distY, distX);
-            ball.x += Math.cos(angle) * ball.speed;
-            ball.y += Math.sin(angle) * ball.speed;
+        if (distance < character.size / 2 + ball.size) {
+            character.hasBall = true;
+            if (character === player) {
+                opponent.hasBall = false;
+            } else {
+                player.hasBall = false;
+            }
+            ball.x = character.x;
+            ball.y = character.y;
         }
     }
 
@@ -139,7 +146,7 @@ document.getElementById('start-game').addEventListener('click', function() {
 
         moveCharacter(player, dx, dy);
         updateCamera();
-        handleBallCollision();
+        handleBallCollision(player);
         drawField();
         drawPlayer(player);
         drawPlayer(opponent);
@@ -148,10 +155,26 @@ document.getElementById('start-game').addEventListener('click', function() {
     }
 
     function moveOpponent() {
-        const dx = (ball.x > opponent.x) ? opponent.speed : -opponent.speed;
-        const dy = (ball.y > opponent.y) ? opponent.speed : -opponent.speed;
+        let dx = 0, dy = 0;
+
+        if (ball.x > opponent.x) dx = opponent.speed;
+        else if (ball.x < opponent.x) dx = -opponent.speed;
+
+        if (ball.y > opponent.y) dy = opponent.speed;
+        else if (ball.y < opponent.y) dy = -opponent.speed;
 
         moveCharacter(opponent, dx, dy);
+        handleBallCollision(opponent);
+
+        // If the opponent has the ball, move towards the player's goal
+        if (opponent.hasBall) {
+            if (opponent.x > fieldWidth / 2) dx = -opponent.speed;
+            if (opponent.y > fieldHeight / 2 + 200) dy = -opponent.speed;
+            if (opponent.y < fieldHeight / 2 - 200) dy = opponent.speed;
+
+            moveCharacter(opponent, dx, dy);
+        }
+
         drawPlayer(opponent);
     }
 
@@ -163,10 +186,10 @@ document.getElementById('start-game').addEventListener('click', function() {
     }
 
     function checkGoal() {
-        if (ball.x < 400 && ball.y > field.height / 2 - 200 && ball.y < field.height / 2 + 200) {
+        if (ball.x < 100 && ball.y > field.height / 2 - 200 && ball.y < field.height / 2 + 200) {
             opponentScore++;
             resetBall();
-        } else if (ball.x > field.width - 400 && ball.y > field.height / 2 - 200 && ball.y < field.height / 2 + 200) {
+        } else if (ball.x > field.width - 100 && ball.y > field.height / 2 - 200 && ball.y < field.height / 2 + 200) {
             playerScore++;
             resetBall();
         }
@@ -175,6 +198,8 @@ document.getElementById('start-game').addEventListener('click', function() {
     function resetBall() {
         ball.x = fieldWidth / 2;
         ball.y = fieldHeight / 2;
+        player.hasBall = false;
+        opponent.hasBall = false;
     }
 
     const keysPressed = {};
@@ -183,9 +208,13 @@ document.getElementById('start-game').addEventListener('click', function() {
         keysPressed[event.key] = true;
 
         // Handle special controls
-        if (keysPressed['p'] && keysPressed['o']) {
+        if (keysPressed[' ']) {
             console.log("Shoot!");
-            // Implement shooting logic here
+            if (player.hasBall) {
+                ball.x += Math.cos(Math.atan2(ball.y - opponent.y, ball.x - opponent.x)) * ball.speed;
+                ball.y += Math.sin(Math.atan2(ball.y - opponent.y, ball.x - opponent.x)) * ball.speed;
+                player.hasBall = false;
+            }
         } else if (event.key === 'p') {
             console.log("Pass!");
             // Implement passing logic here
