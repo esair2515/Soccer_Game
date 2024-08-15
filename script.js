@@ -4,14 +4,12 @@ document.getElementById('start-game').addEventListener('click', function() {
     canvas.style.display = 'block';
     const ctx = canvas.getContext('2d');
 
-    // Set the field dimensions
     const fieldWidth = 5000;
     const fieldHeight = 3000;
 
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
 
-    // Field setup
     const field = {
         width: fieldWidth,
         height: fieldHeight,
@@ -27,6 +25,7 @@ document.getElementById('start-game').addEventListener('click', function() {
         color: 'blue',
         speed: 8,
         hasBall: false,
+        direction: 'down',  // For animation
     };
 
     const opponent = {
@@ -36,6 +35,7 @@ document.getElementById('start-game').addEventListener('click', function() {
         color: 'red',
         speed: 5,
         hasBall: false,
+        direction: 'down',  // For animation
     };
 
     const ball = {
@@ -44,6 +44,8 @@ document.getElementById('start-game').addEventListener('click', function() {
         size: 15,
         color: 'white',
         speed: 10,
+        dx: 0,
+        dy: 0,
     };
 
     const camera = {
@@ -53,8 +55,8 @@ document.getElementById('start-game').addEventListener('click', function() {
 
     let playerScore = 0;
     let opponentScore = 0;
+    let celebrating = false;
 
-    // Countdown before game starts
     function startCountdown(callback) {
         let countdown = 3;
         const interval = setInterval(() => {
@@ -166,6 +168,8 @@ document.getElementById('start-game').addEventListener('click', function() {
             }
             ball.x = character.x;
             ball.y = character.y;
+            ball.dx = 0;
+            ball.dy = 0;
         } else {
             character.hasBall = false;
         }
@@ -210,6 +214,13 @@ document.getElementById('start-game').addEventListener('click', function() {
             if (opponent.y < fieldHeight / 2 - 200) dy = opponent.speed;
 
             moveCharacter(opponent, dx, dy);
+
+            // AI decision to shoot when near the goal
+            if (Math.abs(opponent.x - 100) < 50 && Math.abs(opponent.y - fieldHeight / 2) < 200) {
+                opponent.hasBall = false;
+                ball.dx = -ball.speed;
+                ball.dy = 0;
+            }
         }
 
         drawPlayer(opponent);
@@ -223,46 +234,53 @@ document.getElementById('start-game').addEventListener('click', function() {
     }
 
     function checkGoal() {
-        if (ball.x < 100 && ball.y > field.height / 2 - 200 && ball.y < field.height / 2 + 200) {
+        if (ball.x < 100 && Math.abs(ball.y - fieldHeight / 2) < 200) {
             opponentScore++;
-            resetBall();
-        } else if (ball.x > field.width - 100 && ball.y > field.height / 2 - 200 && ball.y < field.height / 2 + 200) {
+            resetGame();
+        } else if (ball.x > field.width - 100 && Math.abs(ball.y - fieldHeight / 2) < 200) {
             playerScore++;
-            resetBall();
+            resetGame();
         }
     }
 
-    function resetBall() {
+    function resetGame() {
+        player.x = fieldWidth / 2 - 200;
+        player.y = fieldHeight / 2;
+        opponent.x = fieldWidth / 2 + 200;
+        opponent.y = fieldHeight / 2;
         ball.x = fieldWidth / 2;
         ball.y = fieldHeight / 2;
+        ball.dx = 0;
+        ball.dy = 0;
         player.hasBall = false;
         opponent.hasBall = false;
-    }
+        celebrating = true;
 
-    const keysPressed = {};
+        setTimeout(() => {
+            celebrating = false;
+        }, 2000);
+    }
 
     document.addEventListener('keydown', function(event) {
         keysPressed[event.key] = true;
 
-        // Handle special controls
         if (keysPressed[' ']) {
             if (player.hasBall) {
                 // Implement shooting logic
-                player.hasBall = false;
-                const angle = Math.atan2(ball.y - opponent.y, ball.x - opponent.x);
-                ball.x += Math.cos(angle) * ball.speed;
-                ball.y += Math.sin(angle) * ball.speed;
+                ball.dx = (player.direction === 'left' ? -1 : 1) * ball.speed;
+                ball.dy = (player.direction === 'up' ? -1 : 1) * ball.speed;
             }
         } else if (keysPressed['p']) {
             if (player.hasBall) {
                 // Implement passing logic
                 player.hasBall = false;
-                ball.x += player.speed * 3;
+                ball.dx = 3 * ball.speed;
             }
         } else if (keysPressed['o']) {
             if (player.hasBall) {
                 // Implement juking logic
-                player.x += player.speed * 2;
+                dx *= 2;
+                dy *= 2;
             }
         }
     });
