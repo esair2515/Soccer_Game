@@ -6,6 +6,7 @@ body {
     font-family: 'Arial', sans-serif;
     background-color: #282c34;
     color: white;
+    overflow: hidden; /* Ensure no scrollbars */
 }
 
 #home-page {
@@ -47,7 +48,11 @@ button:hover {
 
 #gameCanvas {
     display: none; /* Hide the canvas initially */
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
     background-color: green;
-    border: 5px solid white;
-    margin-top: 20px;
+    border: none;
 }
