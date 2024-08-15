@@ -5,9 +5,9 @@ document.getElementById('start-game').addEventListener('click', function() {
     const ctx = canvas.getContext('2d');
 
     // Set the field dimensions and player size
-    const fieldWidth = 3000;
-    const fieldHeight = 2000;
-    const playerSize = 50;
+    const fieldWidth = 2500; // Reduced size to zoom out
+    const fieldHeight = 1600; // Reduced size to zoom out
+    const playerSize = 30; // Smaller player for zoom out
 
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
@@ -26,6 +26,7 @@ document.getElementById('start-game').addEventListener('click', function() {
         y: canvas.height / 2,
         size: playerSize,
         color: 'blue',
+        speed: 5,
     };
 
     const camera = {
@@ -71,7 +72,14 @@ document.getElementById('start-game').addEventListener('click', function() {
         camera.y = player.y - canvas.height / 2;
     }
 
-    function movePlayer(dx, dy) {
+    function movePlayer() {
+        let dx = 0, dy = 0;
+
+        if (keysPressed['w']) dy -= player.speed;
+        if (keysPressed['a']) dx -= player.speed;
+        if (keysPressed['s']) dy += player.speed;
+        if (keysPressed['d']) dx += player.speed;
+
         player.x += dx;
         player.y += dy;
         updateCamera();
@@ -79,25 +87,19 @@ document.getElementById('start-game').addEventListener('click', function() {
         drawPlayer();
     }
 
+    // Track multiple key presses
+    const keysPressed = {};
+
+    document.addEventListener('keydown', function(event) {
+        keysPressed[event.key] = true;
+        movePlayer();
+    });
+
+    document.addEventListener('keyup', function(event) {
+        keysPressed[event.key] = false;
+    });
+
     // Initial draw
     drawField();
     drawPlayer();
-
-    // Player movement
-    document.addEventListener('keydown', function(event) {
-        switch(event.key) {
-            case 'w':
-                movePlayer(0, -10);
-                break;
-            case 'a':
-                movePlayer(-10, 0);
-                break;
-            case 's':
-                movePlayer(0, 10);
-                break;
-            case 'd':
-                movePlayer(10, 0);
-                break;
-        }
-    });
 });
