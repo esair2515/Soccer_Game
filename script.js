@@ -5,7 +5,7 @@ document.getElementById('start-game').addEventListener('click', function() {
     const ctx = canvas.getContext('2d');
 
     // Set the field dimensions
-    const fieldWidth = 4000; // Increased field size
+    const fieldWidth = 4000;
     const fieldHeight = 2500;
 
     canvas.width = window.innerWidth;
@@ -21,17 +21,25 @@ document.getElementById('start-game').addEventListener('click', function() {
     };
 
     const player = {
-        x: canvas.width / 2,
-        y: canvas.height / 2,
+        x: fieldWidth / 2 - 200,
+        y: fieldHeight / 2,
         size: 30,
         color: 'blue',
-        speed: 8, // Increased speed
+        speed: 8,
+    };
+
+    const opponent = {
+        x: fieldWidth / 2 + 200,
+        y: fieldHeight / 2,
+        size: 30,
+        color: 'red',
+        speed: 5, // Slower than player
     };
 
     const ball = {
         x: fieldWidth / 2,
         y: fieldHeight / 2,
-        size: 15, // Smaller ball
+        size: 15,
         color: 'white',
         speed: 10,
     };
@@ -41,6 +49,9 @@ document.getElementById('start-game').addEventListener('click', function() {
         y: player.y - canvas.height / 2,
     };
 
+    let playerScore = 0;
+    let opponentScore = 0;
+
     function drawField() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         ctx.fillStyle = field.color;
@@ -49,33 +60,40 @@ document.getElementById('start-game').addEventListener('click', function() {
         ctx.strokeStyle = field.lineColor;
         ctx.lineWidth = field.lineWidth;
 
+        // Draw center circle
         ctx.beginPath();
         ctx.arc(field.width / 2 - camera.x, field.height / 2 - camera.y, 100, 0, 2 * Math.PI);
         ctx.stroke();
 
+        // Draw center line
         ctx.beginPath();
         ctx.moveTo(field.width / 2 - camera.x, 0 - camera.y);
         ctx.lineTo(field.width / 2 - camera.x, field.height - camera.y);
         ctx.stroke();
 
+        // Draw goals
         ctx.strokeRect(0 - camera.x, (field.height / 2) - 200 - camera.y, 400, 400);
         ctx.strokeRect(field.width - 400 - camera.x, (field.height / 2) - 200 - camera.y, 400, 400);
+
+        // Draw penalty boxes
+        ctx.strokeRect(0 - camera.x, (field.height / 2) - 600 - camera.y, 800, 1200);
+        ctx.strokeRect(field.width - 800 - camera.x, (field.height / 2) - 600 - camera.y, 800, 1200);
     }
 
-    function drawPlayer() {
-        ctx.fillStyle = player.color;
+    function drawPlayer(character) {
+        ctx.fillStyle = character.color;
 
         // Draw head
         ctx.beginPath();
-        ctx.arc(player.x - camera.x, player.y - player.size / 1.5 - camera.y, player.size / 2, 0, 2 * Math.PI);
+        ctx.arc(character.x - camera.x, character.y - character.size / 1.5 - camera.y, character.size / 2, 0, 2 * Math.PI);
         ctx.fill();
 
         // Draw body
-        ctx.fillRect(player.x - player.size / 4 - camera.x, player.y - player.size / 2 - camera.y, player.size / 2, player.size);
+        ctx.fillRect(character.x - character.size / 4 - camera.x, character.y - character.size / 2 - camera.y, character.size / 2, character.size);
 
         // Draw legs
-        ctx.fillRect(player.x - player.size / 4 - camera.x, player.y + player.size / 2 - camera.y, player.size / 4, player.size / 2);
-        ctx.fillRect(player.x - camera.x, player.y + player.size / 2 - camera.y, player.size / 4, player.size / 2);
+        ctx.fillRect(character.x - character.size / 4 - camera.x, character.y + character.size / 2 - camera.y, character.size / 4, character.size / 2);
+        ctx.fillRect(character.x - camera.x, character.y + character.size / 2 - camera.y, character.size / 4, character.size / 2);
     }
 
     function drawBall() {
@@ -90,22 +108,13 @@ document.getElementById('start-game').addEventListener('click', function() {
         camera.y = player.y - canvas.height / 2;
     }
 
-    function movePlayer() {
-        let dx = 0, dy = 0;
+    function moveCharacter(character, dx, dy) {
+        character.x += dx;
+        character.y += dy;
 
-        if (keysPressed['w']) dy -= player.speed;
-        if (keysPressed['a']) dx -= player.speed;
-        if (keysPressed['s']) dy += player.speed;
-        if (keysPressed['d']) dx += player.speed;
-
-        // Smooth movement
-        player.x += dx * 0.8; 
-        player.y += dy * 0.8;
-        updateCamera();
-        handleBallCollision();
-        drawField();
-        drawPlayer();
-        drawBall();
+        // Prevent moving out of bounds
+        character.x = Math.max(character.size / 2, Math.min(character.x, field.width - character.size / 2));
+        character.y = Math.max(character.size / 2, Math.min(character.y, field.height - character.size / 2));
     }
 
     function handleBallCollision() {
@@ -118,6 +127,54 @@ document.getElementById('start-game').addEventListener('click', function() {
             ball.x += Math.cos(angle) * ball.speed;
             ball.y += Math.sin(angle) * ball.speed;
         }
+    }
+
+    function movePlayer() {
+        let dx = 0, dy = 0;
+
+        if (keysPressed['w']) dy -= player.speed;
+        if (keysPressed['a']) dx -= player.speed;
+        if (keysPressed['s']) dy += player.speed;
+        if (keysPressed['d']) dx += player.speed;
+
+        moveCharacter(player, dx, dy);
+        updateCamera();
+        handleBallCollision();
+        drawField();
+        drawPlayer(player);
+        drawPlayer(opponent);
+        drawBall();
+        drawScore();
+    }
+
+    function moveOpponent() {
+        const dx = (ball.x > opponent.x) ? opponent.speed : -opponent.speed;
+        const dy = (ball.y > opponent.y) ? opponent.speed : -opponent.speed;
+
+        moveCharacter(opponent, dx, dy);
+        drawPlayer(opponent);
+    }
+
+    function drawScore() {
+        ctx.fillStyle = 'white';
+        ctx.font = '30px Arial';
+        ctx.fillText(`Player: ${playerScore}`, 50, 50);
+        ctx.fillText(`Opponent: ${opponentScore}`, canvas.width - 200, 50);
+    }
+
+    function checkGoal() {
+        if (ball.x < 400 && ball.y > field.height / 2 - 200 && ball.y < field.height / 2 + 200) {
+            opponentScore++;
+            resetBall();
+        } else if (ball.x > field.width - 400 && ball.y > field.height / 2 - 200 && ball.y < field.height / 2 + 200) {
+            playerScore++;
+            resetBall();
+        }
+    }
+
+    function resetBall() {
+        ball.x = fieldWidth / 2;
+        ball.y = fieldHeight / 2;
     }
 
     const keysPressed = {};
@@ -144,7 +201,16 @@ document.getElementById('start-game').addEventListener('click', function() {
         keysPressed[event.key] = false;
     });
 
+    function gameLoop() {
+        movePlayer();
+        moveOpponent();
+        checkGoal();
+        requestAnimationFrame(gameLoop);
+    }
+
     drawField();
-    drawPlayer();
+    drawPlayer(player);
+    drawPlayer(opponent);
     drawBall();
+    gameLoop();
 });
