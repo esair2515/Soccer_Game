@@ -563,6 +563,80 @@ function adjustField() {
     fieldHeight = canvas.height * 1.2;
     ctx.scale(0.9, 0.9); // Zoom out slightly
 }
+// Premier League Teams Data
+const teams = [
+    { name: "Manchester United", colors: { shirt: "red", pants: "white" } },
+    { name: "Chelsea", colors: { shirt: "blue", pants: "white" } },
+    { name: "Liverpool", colors: { shirt: "red", pants: "red" } },
+    { name: "Arsenal", colors: { shirt: "red", pants: "white" } },
+    // Add more teams as needed
+];
+
+let selectedTeam = teams[0]; // Default to the first team
+
+// Function to display team selection options
+function displayTeamSelection() {
+    const teamSelectDiv = document.getElementById("team-selection");
+    teamSelectDiv.innerHTML = "<h2>Select Your Team</h2>";
+
+    teams.forEach((team, index) => {
+        const teamButton = document.createElement("button");
+        teamButton.innerText = team.name;
+        teamButton.style.backgroundColor = team.colors.shirt;
+        teamButton.style.color = "white";
+        teamButton.onclick = () => selectTeam(index);
+        teamSelectDiv.appendChild(teamButton);
+    });
+}
+
+// Function to select a team
+function selectTeam(index) {
+    selectedTeam = teams[index];
+    player.shirtColor = selectedTeam.colors.shirt;
+    player.pantsColor = selectedTeam.colors.pants;
+}
+
+// Call this function when the player is choosing their team
+displayTeamSelection();
+
+// Modify the player drawing function to use team colors
+function drawPlayer(player) {
+    ctx.fillStyle = player.shirtColor || "blue";
+    ctx.fillRect(player.x - 10, player.y - 20, 20, 20); // Shirt
+    ctx.fillStyle = player.pantsColor || "black";
+    ctx.fillRect(player.x - 10, player.y, 20, 20); // Pants
+}
+// Countdown function
+function startCountdown() {
+    let countdownValue = 3;
+    const countdownInterval = setInterval(() => {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.font = "60px Arial";
+        ctx.fillStyle = "white";
+        ctx.textAlign = "center";
+        ctx.fillText(countdownValue, canvas.width / 2, canvas.height / 2);
+
+        if (countdownValue === 0) {
+            clearInterval(countdownInterval);
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            startGame(); // Start the game after countdown
+        } else {
+            countdownValue--;
+        }
+    }, 1000); // 1 second interval for countdown
+}
+
+// Ensure the game starts properly after the countdown
+function startGame() {
+    gameStarted = true;
+    gameLoop();
+}
+
+// Trigger countdown when the start button is clicked
+document.getElementById("start-button").onclick = () => {
+    startCountdown();
+};
+
 
 // Call this function at the start of the game
 adjustField();
