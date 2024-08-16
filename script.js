@@ -395,3 +395,79 @@ function drawGameElements() {
 }
 
 requestAnimationFrame(gameLoop);
+// Handle the team selection modal
+const teamSelectionModal = document.getElementById('teamSelectionModal');
+const teamDropdown = document.getElementById('teamDropdown');
+const selectTeamButton = document.getElementById('selectTeam');
+const closeModal = document.getElementById('closeModal');
+
+// Open the modal when the team button is clicked
+document.getElementById('teamButton').addEventListener('click', function() {
+    teamSelectionModal.style.display = 'flex';
+});
+
+// Close the modal when the user clicks the close button
+closeModal.addEventListener('click', function() {
+    teamSelectionModal.style.display = 'none';
+});
+
+// Select the team and update player colors
+selectTeamButton.addEventListener('click', function() {
+    const selectedTeamName = teamDropdown.value;
+    selectedTeam = teams.find(t => t.name === selectedTeamName);
+    alert(`You selected ${selectedTeam.name}!`);
+    teamSelectionModal.style.display = 'none';
+});
+
+// Improved countdown sequence
+function startCountdown(callback) {
+    let count = 3;
+    const countdownElement = document.createElement('div');
+    countdownElement.className = 'countdown';
+    document.body.appendChild(countdownElement);
+
+    const countdownInterval = setInterval(() => {
+        countdownElement.textContent = count > 0 ? count : 'Go!';
+        count--;
+
+        if (count < 0) {
+            clearInterval(countdownInterval);
+            document.body.removeChild(countdownElement);
+            callback(); // Start the game
+        }
+    }, 1000);
+}
+
+// Updated player and ball interaction
+document.addEventListener('keydown', function(event) {
+    keysPressed[event.key] = true;
+
+    if (keysPressed[' ']) {
+        if (player.hasBall) {
+            ball.dx = (player.direction === 'left' ? -1 : 1) * ball.speed;
+            ball.dy = (player.direction === 'up' ? -1 : 1) * ball.speed;
+            player.hasBall = false;
+        }
+    } else if (keysPressed['p']) {
+        if (player.hasBall) {
+            ball.dx = 3 * ball.speed;
+            player.hasBall = false;
+        }
+    } else if (keysPressed['o']) {
+        if (player.hasBall) {
+            ball.dx *= 2;
+            ball.dy *= 2;
+        }
+    }
+});
+
+function drawPlayer(player) {
+    ctx.fillStyle = selectedTeam.shirtColor;
+    ctx.fillRect(player.x - 10, player.y - 20, 20, 20); // Shirt
+    ctx.fillStyle = selectedTeam.pantsColor;
+    ctx.fillRect(player.x - 10, player.y, 20, 20); // Pants
+    ctx.fillStyle = 'white';
+    ctx.beginPath();
+    ctx.arc(player.x, player.y - 30, 10, 0, Math.PI * 2); // Head
+    ctx.fill();
+}
