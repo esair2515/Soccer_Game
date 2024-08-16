@@ -23,7 +23,7 @@ document.getElementById('start-game').addEventListener('click', function() {
         y: fieldHeight / 2,
         size: 30,
         color: 'blue',
-        speed: 8,
+        speed: 10,  // Increased speed
         hasBall: false,
         direction: 'down',  // For animation
     };
@@ -33,7 +33,7 @@ document.getElementById('start-game').addEventListener('click', function() {
         y: fieldHeight / 2,
         size: 30,
         color: 'red',
-        speed: 5,
+        speed: 6,  // Increased speed
         hasBall: false,
         direction: 'down',  // For animation
     };
@@ -41,11 +41,12 @@ document.getElementById('start-game').addEventListener('click', function() {
     const ball = {
         x: fieldWidth / 2,
         y: fieldHeight / 2,
-        size: 15,
+        size: 12,  // Smaller size
         color: 'white',
-        speed: 10,
+        speed: 12,
         dx: 0,
         dy: 0,
+        friction: 0.98,  // Add friction to slow the ball down over time
     };
 
     const camera = {
@@ -157,7 +158,7 @@ document.getElementById('start-game').addEventListener('click', function() {
     function handleBallCollision(character) {
         const distX = character.x - ball.x;
         const distY = character.y - ball.y;
-        const distance = Math.sqrt(distX * distX + distY * distY);
+        const distance = Math.sqrt(distX * distX + distY * DistY);
 
         if (distance < character.size / 2 + ball.size) {
             character.hasBall = true;
@@ -230,7 +231,7 @@ document.getElementById('start-game').addEventListener('click', function() {
         ctx.fillStyle = 'white';
         ctx.font = '30px Arial';
         ctx.textAlign = 'center';
-        ctx.fillText(`Player: ${playerScore} | Opponent: ${opponentScore}`, canvas.width / 2, 50);
+        ctx.fillText(`${playerScore} - ${opponentScore}`, canvas.width / 2, 50);
     }
 
     function checkGoal() {
@@ -266,19 +267,16 @@ document.getElementById('start-game').addEventListener('click', function() {
 
         if (keysPressed[' ']) {
             if (player.hasBall) {
-                // Implement shooting logic
                 ball.dx = (player.direction === 'left' ? -1 : 1) * ball.speed;
                 ball.dy = (player.direction === 'up' ? -1 : 1) * ball.speed;
             }
         } else if (keysPressed['p']) {
             if (player.hasBall) {
-                // Implement passing logic
                 player.hasBall = false;
                 ball.dx = 3 * ball.speed;
             }
         } else if (keysPressed['o']) {
             if (player.hasBall) {
-                // Implement juking logic
                 dx *= 2;
                 dy *= 2;
             }
