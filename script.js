@@ -23,9 +23,9 @@ document.getElementById('start-game').addEventListener('click', function() {
         y: fieldHeight / 2,
         size: 30,
         color: 'blue',
-        speed: 10,  // Increased speed
+        speed: 10,
         hasBall: false,
-        direction: 'down',  // For animation
+        direction: 'down',
     };
 
     const opponent = {
@@ -33,20 +33,36 @@ document.getElementById('start-game').addEventListener('click', function() {
         y: fieldHeight / 2,
         size: 30,
         color: 'red',
-        speed: 6,  // Increased speed
+        speed: 6,
         hasBall: false,
-        direction: 'down',  // For animation
+        direction: 'down',
+    };
+
+    const goalkeeper = {
+        x: 100,
+        y: fieldHeight / 2,
+        size: 30,
+        color: 'yellow',
+        speed: 5,
+    };
+
+    const opponentGoalkeeper = {
+        x: fieldWidth - 100,
+        y: fieldHeight / 2,
+        size: 30,
+        color: 'yellow',
+        speed: 5,
     };
 
     const ball = {
         x: fieldWidth / 2,
         y: fieldHeight / 2,
-        size: 12,  // Smaller size
+        size: 12,
         color: 'white',
         speed: 12,
         dx: 0,
         dy: 0,
-        friction: 0.98,  // Add friction to slow the ball down over time
+        friction: 0.98,
     };
 
     const camera = {
@@ -57,6 +73,7 @@ document.getElementById('start-game').addEventListener('click', function() {
     let playerScore = 0;
     let opponentScore = 0;
     let celebrating = false;
+    let gameOver = false;
 
     function startCountdown(callback) {
         let countdown = 3;
@@ -65,6 +82,8 @@ document.getElementById('start-game').addEventListener('click', function() {
             drawField();
             drawPlayer(player);
             drawPlayer(opponent);
+            drawPlayer(goalkeeper);
+            drawPlayer(opponentGoalkeeper);
             drawBall();
             drawScore();
 
@@ -158,7 +177,7 @@ document.getElementById('start-game').addEventListener('click', function() {
     function handleBallCollision(character) {
         const distX = character.x - ball.x;
         const distY = character.y - ball.y;
-        const distance = Math.sqrt(distX * distX + distY * DistY);
+        const distance = Math.sqrt(distX * distX + distY * distY);
 
         if (distance < character.size / 2 + ball.size) {
             character.hasBall = true;
@@ -190,6 +209,8 @@ document.getElementById('start-game').addEventListener('click', function() {
         drawField();
         drawPlayer(player);
         drawPlayer(opponent);
+        drawPlayer(goalkeeper);
+        drawPlayer(opponentGoalkeeper);
         drawBall();
         drawScore();
     }
@@ -213,18 +234,16 @@ document.getElementById('start-game').addEventListener('click', function() {
             if (opponent.x > fieldWidth / 2) dx = -opponent.speed;
             if (opponent.y > fieldHeight / 2 + 200) dy = -opponent.speed;
             if (opponent.y < fieldHeight / 2 - 200) dy = opponent.speed;
-
-            moveCharacter(opponent, dx, dy);
-
-            // AI decision to shoot when near the goal
-            if (Math.abs(opponent.x - 100) < 50 && Math.abs(opponent.y - fieldHeight / 2) < 200) {
-                opponent.hasBall = false;
-                ball.dx = -ball.speed;
-                ball.dy = 0;
-            }
         }
 
-        drawPlayer(opponent);
+        moveCharacter(opponent, dx, dy);
+    }
+
+    function moveGoalkeeper(character) {
+        if (ball.y > character.y) character.y += character.speed;
+        if (ball.y < character.y) character.y -= character.speed;
+
+        character.y = Math.max(200, Math.min(character.y, fieldHeight - 200));
     }
 
     function drawScore() {
@@ -238,7 +257,7 @@ document.getElementById('start-game').addEventListener('click', function() {
         if (ball.x < 100 && Math.abs(ball.y - fieldHeight / 2) < 200) {
             opponentScore++;
             resetGame();
-        } else if (ball.x > field.width - 100 && Math.abs(ball.y - fieldHeight / 2) < 200) {
+        } else if (ball.x > fieldWidth - 100 && Math.abs(ball.y - fieldHeight / 2) < 200) {
             playerScore++;
             resetGame();
         }
@@ -277,8 +296,8 @@ document.getElementById('start-game').addEventListener('click', function() {
             }
         } else if (keysPressed['o']) {
             if (player.hasBall) {
-                dx *= 2;
-                dy *= 2;
+                ball.dx *= 2;
+                ball.dy *= 2;
             }
         }
     });
@@ -290,6 +309,8 @@ document.getElementById('start-game').addEventListener('click', function() {
     function gameLoop() {
         movePlayer();
         moveOpponent();
+        moveGoalkeeper(goalkeeper);
+        moveGoalkeeper(opponentGoalkeeper);
         checkGoal();
         requestAnimationFrame(gameLoop);
     }
