@@ -116,12 +116,32 @@ function movePlayer() {
 
 // Function to handle ball movement
 function moveBall() {
-    ball.x += ball.dx;
-    ball.y += ball.dy;
+    if (player.hasBall) {
+        ball.x = player.x + player.dx * ball.speed;
+        ball.y = player.y + player.dy * ball.speed;
+    } else {
+        ball.x += ball.dx;
+        ball.y += ball.dy;
 
-    // Bounce off the walls
-    if (ball.x < 0 || ball.x > canvas.width) ball.dx *= -1;
-    if (ball.y < 0 || ball.y > canvas.height) ball.dy *= -1;
+        // Bounce off the walls
+        if (ball.x < 0 || ball.x > canvas.width) ball.dx *= -1;
+        if (ball.y < 0 || ball.y > canvas.height) ball.dy *= -1;
+    }
+}
+
+// Function to check collision between player and ball
+function checkBallCollision() {
+    const distX = player.x - ball.x;
+    const distY = player.y - ball.y;
+    const distance = Math.sqrt(distX * distX + distY * distY);
+
+    if (distance < player.width / 2 + ball.radius) {
+        player.hasBall = true;
+        ball.dx = 0;
+        ball.dy = 0;
+    } else {
+        player.hasBall = false;
+    }
 }
 
 // Game loop
@@ -134,6 +154,7 @@ function gameLoop() {
 
     movePlayer();
     moveBall();
+    checkBallCollision();
 
     drawPlayer(player);
     drawPlayer(aiPlayer);
@@ -174,6 +195,15 @@ document.addEventListener("keydown", (e) => {
     if (e.key === "s") player.dy = player.speed;
     if (e.key === "a") player.dx = -player.speed;
     if (e.key === "d") player.dx = player.speed;
+    if (e.key === "p") {
+        // Passing logic here (not yet implemented)
+    }
+    if (e.key === "o") {
+        // Juking logic here (not yet implemented)
+    }
+    if (e.key === " ") {
+        // Shooting logic here (not yet implemented)
+    }
 });
 
 document.addEventListener("keyup", (e) => {
