@@ -471,3 +471,98 @@ function drawPlayer(player) {
     ctx.arc(player.x, player.y - 30, 10, 0, Math.PI * 2); // Head
     ctx.fill();
 }
+// AI Logic for Stealing, Passing, and Shooting
+function aiBehavior() {
+    // AI should only steal the ball if it's close enough and if it doesn't already have the ball
+    const distanceToBall = Math.hypot(aiPlayer.x - ball.x, aiPlayer.y - ball.y);
+    if (distanceToBall < 30 && !aiPlayer.hasBall) {
+        aiPlayer.hasBall = true;
+        player.hasBall = false;
+    }
+
+    // AI movement logic to either pass, shoot, or juke
+    if (aiPlayer.hasBall) {
+        const randomAction = Math.random();
+        if (randomAction < 0.4) {
+            // Pass
+            aiPass();
+        } else if (randomAction < 0.7) {
+            // Shoot
+            aiShoot();
+        } else {
+            // Juke
+            aiJuke();
+        }
+    }
+
+    // AI movement towards the goal
+    aiPlayer.x += aiPlayer.dx;
+    aiPlayer.y += aiPlayer.dy;
+    // Keep the AI within the field bounds
+    keepPlayerInBounds(aiPlayer);
+}
+
+// AI Pass Function
+function aiPass() {
+    if (aiPlayer.hasBall) {
+        ball.dx = -2 * ball.speed;
+        ball.dy = 1 * ball.speed;
+        aiPlayer.hasBall = false;
+    }
+}
+
+// AI Shoot Function
+function aiShoot() {
+    if (aiPlayer.hasBall) {
+        ball.dx = 5 * ball.speed;
+        ball.dy = 0;
+        aiPlayer.hasBall = false;
+    }
+}
+
+// AI Juke Function
+function aiJuke() {
+    if (aiPlayer.hasBall) {
+        ball.dx = 0;
+        ball.dy = -5 * ball.speed;
+        aiPlayer.hasBall = false;
+    }
+}
+
+// Ensure the AI Player stays within the bounds of the field
+function keepPlayerInBounds(player) {
+    if (player.x < 0) player.x = 0;
+    if (player.x > fieldWidth) player.x = fieldWidth;
+    if (player.y < 0) player.y = 0;
+    if (player.y > fieldHeight) player.y = fieldHeight;
+}
+// Drawing the goals with shadows for more realism
+function drawGoal(x, y) {
+    ctx.fillStyle = '#ffffff'; // White for the goal post
+    ctx.fillRect(x, y - 40, 10, 80); // Goal post
+    ctx.fillStyle = '#cccccc'; // Gray for the shadow
+    ctx.fillRect(x + 10, y - 40, 5, 80); // Shadow
+}
+
+// Updated draw function for the game
+function drawGame() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    drawField(); // Function to draw the field
+    drawPlayer(player);
+    drawPlayer(aiPlayer);
+    drawBall();
+    drawGoal(50, canvas.height / 2); // Left goal
+    drawGoal(canvas.width - 60, canvas.height / 2); // Right goal
+    updateScores();
+}
+
+// Adjust field size and zoom
+function adjustField() {
+    fieldWidth = canvas.width * 1.2;
+    fieldHeight = canvas.height * 1.2;
+    ctx.scale(0.9, 0.9); // Zoom out slightly
+}
+
+// Call this function at the start of the game
+adjustField();
