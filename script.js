@@ -317,3 +317,81 @@ document.getElementById('start-game').addEventListener('click', function() {
 
     startCountdown(gameLoop);
 });
+// Add team selection to the game
+
+const teams = [
+    { name: 'Manchester United', shirtColor: 'red', pantsColor: 'white' },
+    { name: 'Chelsea', shirtColor: 'blue', pantsColor: 'white' },
+    { name: 'Liverpool', shirtColor: 'red', pantsColor: 'red' },
+    { name: 'Manchester City', shirtColor: 'skyblue', pantsColor: 'white' },
+    { name: 'Arsenal', shirtColor: 'red', pantsColor: 'white' },
+];
+
+let selectedTeam = teams[0]; // Default team
+
+document.getElementById('teamButton').addEventListener('click', function() {
+    const teamName = prompt('Choose your team: Manchester United, Chelsea, Liverpool, Manchester City, Arsenal');
+    const team = teams.find(t => t.name.toLowerCase() === teamName.toLowerCase());
+
+    if (team) {
+        selectedTeam = team;
+        alert(`You selected ${selectedTeam.name}!`);
+    } else {
+        alert('Team not found. Defaulting to Manchester United.');
+    }
+});
+
+// Update player colors based on selected team
+function drawPlayer(player) {
+    ctx.fillStyle = selectedTeam.shirtColor;
+    ctx.fillRect(player.x - 10, player.y - 20, 20, 20); // Shirt
+    ctx.fillStyle = selectedTeam.pantsColor;
+    ctx.fillRect(player.x - 10, player.y, 20, 20); // Pants
+}
+
+// Ensure the game starts after the countdown
+function startCountdown(callback) {
+    let count = 3;
+    const countdownInterval = setInterval(() => {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = 'white';
+        ctx.font = '60px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText(count, canvas.width / 2, canvas.height / 2);
+        count--;
+
+        if (count < 0) {
+            clearInterval(countdownInterval);
+            callback(); // Start the game
+        }
+    }, 1000);
+}
+
+// Call this function when the "Start Game" button is clicked
+document.getElementById('startGame').addEventListener('click', function() {
+    startCountdown(() => {
+        gameLoop();
+    });
+});
+
+// The rest of the game loop, AI, ball movement, etc.
+function gameLoop() {
+    movePlayer();
+    moveOpponent();
+    moveGoalkeeper(goalkeeper);
+    moveGoalkeeper(opponentGoalkeeper);
+    checkGoal();
+    requestAnimationFrame(gameLoop);
+}
+
+// Example function to draw the ball and other elements
+function drawGameElements() {
+    drawField();
+    drawPlayer(player);
+    drawPlayer(opponent);
+    drawBall();
+    drawGoals();
+    drawScore();
+}
+
+requestAnimationFrame(gameLoop);
