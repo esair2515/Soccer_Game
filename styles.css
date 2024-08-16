@@ -1,58 +1,55 @@
+/* styles.css */
+
 body {
     margin: 0;
+    padding: 0;
     display: flex;
-    flex-direction: column;
+    justify-content: center;
     align-items: center;
+    height: 100vh;
+    background-color: #0b3d91; /* Premier League-inspired blue background */
     font-family: 'Arial', sans-serif;
-    background-color: #282c34;
-    color: white;
-    overflow: hidden; /* Ensure no scrollbars */
 }
 
-#home-page {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    margin-top: 50px;
+.container {
+    text-align: center;
+    width: 100%;
 }
 
-h1 {
-    font-size: 3rem;
-    font-weight: bold;
-    text-transform: uppercase;
-    letter-spacing: 3px;
-    background-color: #f39c12;
-    padding: 20px;
-    border-radius: 15px;
+.title {
+    font-size: 60px;
+    color: #ffffff;
+    margin-bottom: 20px;
+    text-shadow: 2px 2px #333; /* Shadow effect for the title */
 }
 
-#mode-selection {
-    margin-top: 20px;
+.menu {
+    margin-bottom: 20px;
 }
 
-button {
-    font-size: 1.2rem;
-    margin: 10px;
-    padding: 10px 20px;
+.menu-button {
+    background-color: #e50914;
     border: none;
-    border-radius: 10px;
-    cursor: pointer;
-    background-color: #3498db;
     color: white;
+    padding: 15px 30px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 20px;
+    margin: 10px 5px;
+    cursor: pointer;
+    border-radius: 8px;
     transition: background-color 0.3s ease;
 }
 
-button:hover {
-    background-color: #2980b9;
+.menu-button:hover {
+    background-color: #f0131e;
 }
 
-#gameCanvas {
-    display: none; /* Hide the canvas initially */
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    background-color: green;
-    border: none;
+canvas {
+    display: block;
+    margin: 0 auto;
+    background-color: #27ae60; /* Green field color */
+    border: 5px solid #ffffff;
+    box-shadow: 0 0 10px #333; /* Shadow around the field */
 }
